@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoPro — Vehicle Sales & Service Management</title>
+  <meta name="description" content="AutoPro: A complete vehicle sales and service management system for dealerships. Manage inventory, sales, service bookings, and billing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1a56db;
+      --primary-light: #e8f0fe;
+      --secondary: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --sidebar: #1e2a3a;
+      --sidebar-hover: #2d3f54;
+      --sidebar-active: #1a56db;
+      --text: #1a202c;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: var(--sidebar);
+      color: #fff;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header-brand { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
+    .header-brand span { color: var(--secondary); }
+    .header-badge { background: var(--secondary); color: #fff; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 14px; font-size: 0.85rem; color: #94a3b8; }
+    .header-right strong { color: #fff; }
+
+    .layout { display: flex; flex: 1; }
+
+    .sidebar {
+      width: 220px;
+      background: var(--sidebar);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0 20px;
+      min-height: calc(100vh - 60px);
+    }
+    .sidebar-section { padding: 6px 16px 2px; font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 500;
+      color: #94a3b8; transition: all 0.2s; border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-item.active { background: rgba(26,86,219,0.2); color: #fff; border-left-color: var(--primary); }
+    .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+    .main { flex: 1; padding: 28px; overflow-y: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.6rem; font-weight: 800; color: var(--text); }
+    .page-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 4px;
+      border-top: 3px solid var(--primary);
+    }
+    .stat-card.green { border-top-color: var(--success); }
+    .stat-card.amber { border-top-color: var(--warning); }
+    .stat-card.red   { border-top-color: var(--danger); }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; }
+    .stat-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+    .card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .card-title .badge { font-size: 0.72rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+    .form-control {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: 0.9rem; font-family: inherit;
+      background: #f8fafc; transition: border-color 0.2s, box-shadow 0.2s; color: var(--text);
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); background: #fff; }
+    select.form-control { cursor: pointer; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: inherit; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #1648c9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,86,219,0.3); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-warning { background: var(--warning); color: #fff; }
+    .btn-warning:hover { background: #d97706; }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-danger:hover  { background: #dc2626; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead th { background: #f1f5f9; padding: 10px 14px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; border-bottom: 2px solid var(--border); }
+    tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .badge-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .badge-available { background: #d1fae5; color: #065f46; }
+    .badge-sold      { background: #fee2e2; color: #991b1b; }
+    .badge-pending   { background: #fef3c7; color: #92400e; }
+    .badge-service   { background: #dbeafe; color: #1e40af; }
+    .badge-done      { background: #d1fae5; color: #065f46; }
+    .badge-wip       { background: #fef3c7; color: #92400e; }
+
+    .search-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: flex-end; }
+    .search-input-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem; }
+    .search-input { padding-left: 36px !important; }
+
+    .vehicle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    .vehicle-card {
+      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    }
+    .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .vehicle-img {
+      width: 100%; height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem;
+    }
+    .vehicle-body { padding: 16px; }
+    .vehicle-name { font-size: 1rem; font-weight: 700; }
+    .vehicle-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .vehicle-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .vehicle-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+    .vehicle-actions { margin-top: 12px; display: flex; gap: 8px; }
+
+    .invoice-box { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 700px; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 18px; border-bottom: 2px solid var(--border); }
+    .invoice-brand { font-size: 1.5rem; font-weight: 800; }
+    .invoice-brand span { color: var(--primary); }
+    .invoice-meta { text-align: right; font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+    .invoice-meta strong { color: var(--text); }
+    .invoice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .invoice-section h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .invoice-section p { font-size: 0.9rem; line-height: 1.7; }
+    .invoice-total { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--border); }
+    .invoice-total-line { display: flex; gap: 40px; font-size: 0.9rem; }
+    .invoice-total-line.grand { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
+
+    .toast-container { position: fixed; top: 72px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      background: var(--card); border-left: 4px solid var(--success);
+      padding: 14px 18px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      font-size: 0.88rem; min-width: 260px; animation: slideIn 0.3s ease;
+    }
+    .toast.error { border-left-color: var(--danger); }
+    .toast-title { font-weight: 700; margin-bottom: 2px; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 12px; padding: 28px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.25s ease; }
+    @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 18px; }
+    .modal-close { float: right; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 16px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .vehicle-grid { grid-template-columns: 1fr; }
+      .invoice-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<header class="header">
+  <div class="header-brand">
+    🚗 Auto<span>Pro</span>
+    <span class="header-badge">DEMO</span>
+  </div>
+  <div class="header-right">
+    👤 <strong>Admin User</strong> &nbsp;|&nbsp; 📅 <span id="currentDate"></span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">Main Menu</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="sidebar-section">Sales</div>
+    <div class="nav-item" id="nav-search" onclick="navigate('search')">
+      <span class="nav-icon">🔍</span> Search Vehicle
+    </div>
+    <div class="nav-item" id="nav-purchase" onclick="navigate('purchase')">
+      <span class="nav-icon">🛒</span> Purchase Vehicle
+    </div>
+    <div class="sidebar-section">Service</div>
+    <div class="nav-item" id="nav-bookservice" onclick="navigate('bookservice')">
+      <span class="nav-icon">📅</span> Book Service
+    </div>
+    <div class="nav-item" id="nav-servicetrack" onclick="navigate('servicetrack')">
+      <span class="nav-icon">🔧</span> Service Vehicle
+    </div>
+    <div class="sidebar-section">Finance</div>
+    <div class="nav-item" id="nav-billing" onclick="navigate('billing')">
+      <span class="nav-icon">🧾</span> Generate Bill
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1>📊 Dashboard</h1>
+        <p>Overview of your sales and service operations</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Vehicles</div>
+          <div class="stat-value" id="stat-total">12</div>
+          <div class="stat-sub">In inventory</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Vehicles Sold</div>
+          <div class="stat-value" id="stat-sold">0</div>
+          <div class="stat-sub">This session</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Service Bookings</div>
+          <div class="stat-value" id="stat-bookings">0</div>
+          <div class="stat-sub">Pending / Active</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Bills Generated</div>
+          <div class="stat-value" id="stat-bills">0</div>
+          <div class="stat-sub">Invoices raised</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🚗 Inventory Overview <span class="badge">Live</span></div>
+        <div class="table-wrap">
+          <table id="dashInventoryTable">
+            <thead>
+              <tr><th>Model</th><th>Type</th><th>Year</th><th>Price (Rs.)</th><th>Status</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔧 Recent Service Bookings</div>
+        <div id="dashServiceContent">
+          <div class="empty-state"><div class="empty-icon">📋</div><p>No service bookings yet.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH VEHICLE -->
+    <section class="page" id="page-search">
+      <div class="page-header">
+        <h1>🔍 Search Vehicle</h1>
+        <p>Browse and search available vehicles in inventory</p>
+      </div>
+      <div class="card">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchQuery" class="form-control search-input" placeholder="Search by name, brand, type..." oninput="searchVehicles()" />
+          </div>
+          <select class="form-control" id="filterType" onchange="searchVehicles()" style="max-width:160px">
+            <option value="">All Types</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Hatchback">Hatchback</option>
+            <option value="Truck">Truck</option>
+            <option value="Bike">Bike</option>
+          </select>
+          <select class="form-control" id="filterStatus" onchange="searchVehicles()" style="max-width:160px">
+            <option value="">All Status</option>
+            <option value="Available">Available</option>
+            <option value="Sold">Sold</option>
+          </select>
+        </div>
+        <div class="vehicle-grid" id="vehicleGrid"></div>
+      </div>
+    </section>
+
+    <!-- PURCHASE VEHICLE -->
+    <section class="page" id="page-purchase">
+      <div class="page-header">
+        <h1>🛒 Purchase Vehicle</h1>
+        <p>Record a new vehicle sale</p>
+      </div>
+      <div class="card">
+        <div class="card-title">New Purchase Order</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Select Vehicle</label>
+            <select class="form-control" id="purchaseVehicle" onchange="fillPurchaseDetails()">
+              <option value="">-- Select Available Vehicle --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Price (Rs.)</label>
+            <input type="number" class="form-control" id="purchasePrice" readonly />
+          </div>
+          <div class="form-group">
+            <label>Customer Name</label>
+            <input type="text" class="form-control" id="custName" placeholder="Full name" />
+          </div>
+          <div class="form-group">
+            <label>Customer Phone</label>
+            <input type="tel" class="form-control" id="custPhone" placeholder="+91 XXXXX XXXXX" />
+          </div>
+          <div class="form-group">
+            <label>Customer Email</label>
+            <input type="email" class="form-control" id="custEmail" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Payment Mode</label>
+            <select class="form-control" id="payMode">
+              <option>Cash</option>
+              <option>Bank Transfer</option>
+              <option>Loan / EMI</option>
+              <option>Card</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Purchase Date</label>
+            <input type="date" class="form-control" id="purchaseDate" />
+          </div>
+          <div class="form-group">
+            <label>Discount (Rs.)</label>
+            <input type="number" class="form-control" id="purchaseDiscount" placeholder="0" value="0" />
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="confirmPurchase()">Confirm Purchase</button>
+          <button class="btn btn-outline" onclick="clearPurchaseForm()">Clear</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Purchase History</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Vehicle</th><th>Customer</th><th>Phone</th><th>Payment</th><th>Amount (Rs.)</th><th>Date</th><th>Bill</th></tr>
+            </thead>
+            <tbody id="purchaseBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOK SERVICE -->
+    <section class="page" id="page-bookservice">
+      <div class="page-header">
+        <h1>📅 Book Service</h1>
+        <p>Schedule a vehicle for service or maintenance</p>
+      </div>
+      <div class="card">
+        <div class="card-title">New Service Booking</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer Name</label>
+            <input type="text" class="form-control" id="svcCustName" placeholder="Full name" />
+          </div>
+          <div class="form-group">
+            <label>Customer Phone</label>
+            <input type="tel" class="form-control" id="svcPhone" placeholder="+91 XXXXX XXXXX" />
+          </div>
+          <div class="form-group">
+            <label>Vehicle Make / Model</label>
+            <input type="text" class="form-control" id="svcVehicle" placeholder="e.g., Honda City" />
+          </div>
+          <div class="form-group">
+            <label>Registration Number</label>
+            <input type="text" class="form-control" id="svcRegNo" placeholder="TN-XX-XXXX" />
+          </div>
+          <div class="form-group">
+            <label>Service Type</label>
+            <select class="form-control" id="svcType">
+              <option>General Service</option>
+              <option>Oil Change</option>
+              <option>Brake Service</option>
+              <option>Tyre Change</option>
+              <option>Engine Repair</option>
+              <option>AC Service</option>
+              <option>Body Work / Denting</option>
+              <option>Full Check-up</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Service Date</label>
+            <input type="date" class="form-control" id="svcDate" />
+          </div>
+          <div class="form-group">
+            <label>Expected Delivery</label>
+            <input type="date" class="form-control" id="svcDelivery" />
+          </div>
+          <div class="form-group">
+            <label>Notes / Complaint</label>
+            <input type="text" class="form-control" id="svcNotes" placeholder="Customer complaint or notes" />
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="bookService()">Book Service</button>
+          <button class="btn btn-outline" onclick="clearServiceForm()">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICE VEHICLE -->
+    <section class="page" id="page-servicetrack">
+      <div class="page-header">
+        <h1>🔧 Service Vehicle</h1>
+        <p>Manage and update service job status</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Active Service Jobs <span class="badge" id="svcCountBadge">0 jobs</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Customer</th><th>Phone</th><th>Vehicle</th><th>Reg No.</th><th>Service</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="serviceBody"></tbody>
+          </table>
+        </div>
+        <div id="serviceEmptyState" class="empty-state">
+          <div class="empty-icon">🔧</div>
+          <p>No service bookings yet. <a href="#" onclick="navigate('bookservice')" style="color:var(--primary)">Book one now.</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- GENERATE BILL -->
+    <section class="page" id="page-billing">
+      <div class="page-header">
+        <h1>🧾 Generate Bill</h1>
+        <p>Create invoices for sales or service</p>
+      </div>
+      <div class="card" style="max-width:700px">
+        <div class="card-title">Bill Configuration</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Bill Type</label>
+            <select class="form-control" id="billType" onchange="toggleBillType()">
+              <option value="sale">Vehicle Sale</option>
+              <option value="service">Service</option>
+            </select>
+          </div>
+          <div class="form-group" id="billSaleGroup">
+            <label>Select Purchase Record</label>
+            <select class="form-control" id="billPurchaseRef" onchange="populateBillFromPurchase()">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
+          <div class="form-group" id="billSvcGroup" style="display:none">
+            <label>Select Service Record</label>
+            <select class="form-control" id="billServiceRef" onchange="populateBillFromService()">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
+        </div>
+        <div id="billForm" style="display:none; margin-top:20px">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Customer Name</label>
+              <input type="text" class="form-control" id="billCustName" />
+            </div>
+            <div class="form-group">
+              <label>Customer Phone</label>
+              <input type="text" class="form-control" id="billCustPhone" />
+            </div>
+            <div class="form-group">
+              <label>Item Description</label>
+              <input type="text" class="form-control" id="billItem" />
+            </div>
+            <div class="form-group">
+              <label>Base Amount (Rs.)</label>
+              <input type="number" class="form-control" id="billBase" oninput="calcBillTotal()" />
+            </div>
+            <div class="form-group">
+              <label>Discount (Rs.)</label>
+              <input type="number" class="form-control" id="billDiscount" value="0" oninput="calcBillTotal()" />
+            </div>
+            <div class="form-group">
+              <label>GST %</label>
+              <select class="form-control" id="billGst" onchange="calcBillTotal()">
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+                <option value="28">28%</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="generateBill()">Generate Invoice</button>
+            <button class="btn btn-outline" onclick="clearBillForm()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="invoicePreview" style="display:none; max-width:700px; margin-top:20px">
+        <div class="invoice-box" id="invoiceContent">
+          <div class="invoice-header">
+            <div>
+              <div class="invoice-brand">Auto<span>Pro</span></div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Vehicle Sales and Service Center</div>
+              <div style="font-size:0.8rem;color:var(--text-muted)">123 Main Road, Chennai - 600001</div>
+            </div>
+            <div class="invoice-meta">
+              <div><strong>INVOICE</strong></div>
+              <div>No: <strong id="inv-no">INV-001</strong></div>
+              <div>Date: <strong id="inv-date">-</strong></div>
+            </div>
+          </div>
+          <div class="invoice-row">
+            <div class="invoice-section">
+              <h4>Bill To</h4>
+              <p id="inv-customer">-</p>
+            </div>
+            <div class="invoice-section">
+              <h4>Service / Item</h4>
+              <p id="inv-item">-</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Description</th><th style="text-align:right">Amount (Rs.)</th></tr></thead>
+              <tbody id="inv-items-body"></tbody>
+            </table>
+          </div>
+          <div class="invoice-total">
+            <div class="invoice-total-line"><span>Sub Total</span><span id="inv-sub">Rs. 0</span></div>
+            <div class="invoice-total-line"><span>Discount</span><span id="inv-disc">-Rs. 0</span></div>
+            <div class="invoice-total-line"><span>GST</span><span id="inv-gst">Rs. 0</span></div>
+            <div class="invoice-total-line grand"><span>TOTAL</span><span id="inv-total">Rs. 0</span></div>
+          </div>
+          <div style="margin-top:24px;font-size:0.8rem;color:var(--text-muted);text-align:center;border-top:1px solid var(--border);padding-top:14px">
+            Thank you for choosing AutoPro! | GST: 29ABCDE1234F1Z5
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:16px">
+          <button class="btn btn-primary" onclick="printInvoice()">Print Invoice</button>
+          <button class="btn btn-outline" onclick="hideInvoice()">Close</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="purchaseModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('purchaseModal')">x</button>
+    <div class="modal-title">Purchase Confirmed</div>
+    <p id="modalMsg" style="font-size:0.9rem;line-height:1.7;color:var(--text-muted)"></p>
+    <div class="btn-group">
+      <button class="btn btn-primary btn-sm" onclick="goToBilling()">Generate Bill</button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('purchaseModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var inventory = [
+  { id: 1, name: "Maruti Suzuki Swift",       brand:"Maruti",        type:"Hatchback", year:2023, price:650000,  fuel:"Petrol",   color:"White",  status:"Available", icon:"🚗" },
+  { id: 2, name: "Hyundai Creta",             brand:"Hyundai",       type:"SUV",       year:2024, price:1350000, fuel:"Diesel",   color:"Black",  status:"Available", icon:"🚙" },
+  { id: 3, name: "Tata Nexon",               brand:"Tata",          type:"SUV",       year:2023, price:980000,  fuel:"Petrol",   color:"Blue",   status:"Available", icon:"🚙" },
+  { id: 4, name: "Honda City",               brand:"Honda",         type:"Sedan",     year:2024, price:1250000, fuel:"Petrol",   color:"Silver", status:"Available", icon:"🚘" },
+  { id: 5, name: "Toyota Fortuner",          brand:"Toyota",        type:"SUV",       year:2023, price:3800000, fuel:"Diesel",   color:"Grey",   status:"Available", icon:"🚕" },
+  { id: 6, name: "Mahindra Thar",            brand:"Mahindra",      type:"SUV",       year:2024, price:1600000, fuel:"Diesel",   color:"Red",    status:"Available", icon:"🛻" },
+  { id: 7, name: "Bajaj Pulsar 150",         brand:"Bajaj",         type:"Bike",      year:2023, price:110000,  fuel:"Petrol",   color:"Black",  status:"Available", icon:"🏍" },
+  { id: 8, name: "Royal Enfield Classic 350",brand:"Royal Enfield", type:"Bike",      year:2024, price:195000,  fuel:"Petrol",   color:"Brown",  status:"Available", icon:"🏍" },
+  { id: 9, name: "Kia Seltos",              brand:"Kia",           type:"SUV",       year:2024, price:1150000, fuel:"Petrol",   color:"White",  status:"Available", icon:"🚙" },
+  { id:10, name: "Volkswagen Polo",          brand:"VW",            type:"Hatchback", year:2022, price:720000,  fuel:"Petrol",   color:"Blue",   status:"Available", icon:"🚗" },
+  { id:11, name: "Tata Tigor EV",           brand:"Tata",          type:"Sedan",     year:2024, price:1350000, fuel:"Electric", color:"Green",  status:"Available", icon:"🚗" },
+  { id:12, name: "Ashok Leyland Dost",       brand:"Ashok Leyland", type:"Truck",     year:2023, price:950000,  fuel:"Diesel",   color:"White",  status:"Available", icon:"🚛" }
+];
+
+var purchases = [];
+var serviceBookings = [];
+var billCount = 0;
+var lastPurchaseIdx = null;
+
+var gradients = [
+  "linear-gradient(135deg,#1e3a5f,#2d6a9f)",
+  "linear-gradient(135deg,#1a2a4a,#2a5298)",
+  "linear-gradient(135deg,#2d1b69,#5a3e8e)",
+  "linear-gradient(135deg,#1a4a2e,#2d8a5e)",
+  "linear-gradient(135deg,#4a1a1a,#8a2d2d)",
+  "linear-gradient(135deg,#1a3a4a,#2d7a8a)"
+];
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'search')       renderVehicleGrid(null);
+  if (page === 'purchase')     refreshPurchasePage();
+  if (page === 'servicetrack') renderServiceTable();
+  if (page === 'billing')      refreshBillingPage();
+  if (page === 'dashboard')    refreshDashboard();
+}
+
+function toast(title, msg, isError) {
+  var c = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.innerHTML = '<div class="toast-title">' + title + '</div><div>' + msg + '</div>';
+  c.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 3500);
+}
+
+function fmt(n) { return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
+
+function today() {
+  var d = new Date();
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  var dt = new Date(d);
+  return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function genInvoiceNo() {
+  billCount++;
+  document.getElementById('stat-bills').textContent = billCount;
+  return 'INV-' + String(billCount).padStart(3,'0');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function refreshDashboard() {
+  document.getElementById('stat-total').textContent = inventory.length;
+  document.getElementById('stat-sold').textContent = purchases.length;
+  document.getElementById('stat-bookings').textContent = serviceBookings.length;
+
+  var tbody = document.querySelector('#dashInventoryTable tbody');
+  tbody.innerHTML = '';
+  inventory.slice(0,6).forEach(function(v) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + v.icon + ' ' + v.name + '</td><td>' + v.type + '</td><td>' + v.year + '</td><td>' + fmt(v.price) + '</td>' +
+      '<td><span class="badge-pill ' + (v.status==='Available'?'badge-available':'badge-sold') + '">' + v.status + '</span></td>';
+    tbody.appendChild(tr);
+  });
+
+  var sc = document.getElementById('dashServiceContent');
+  if (serviceBookings.length === 0) {
+    sc.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No service bookings yet.</p></div>';
+  } else {
+    var html = '<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Vehicle</th><th>Service</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+    var recent = serviceBookings.slice(-5).reverse();
+    recent.forEach(function(b) {
+      var cls = b.status === 'Completed' ? 'badge-done' : b.status === 'In Progress' ? 'badge-wip' : 'badge-service';
+      html += '<tr><td>' + b.custName + '</td><td>' + b.vehicle + '</td><td>' + b.svcType + '</td><td>' + fmtDate(b.date) + '</td>' +
+        '<td><span class="badge-pill ' + cls + '">' + b.status + '</span></td></tr>';
+    });
+    html += '</tbody></table></div>';
+    sc.innerHTML = html;
+  }
+}
+
+function searchVehicles() {
+  var q = document.getElementById('searchQuery').value.toLowerCase();
+  var type = document.getElementById('filterType').value;
+  var status = document.getElementById('filterStatus').value;
+  var filtered = inventory.filter(function(v) {
+    return (v.name.toLowerCase().indexOf(q) >= 0 || v.brand.toLowerCase().indexOf(q) >= 0) &&
+      (type ? v.type === type : true) &&
+      (status ? v.status === status : true);
+  });
+  renderVehicleGrid(filtered);
+}
+
+function renderVehicleGrid(data) {
+  if (!data) data = inventory;
+  var grid = document.getElementById('vehicleGrid');
+  if (data.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><p>No vehicles found.</p></div>';
+    return;
+  }
+  grid.innerHTML = '';
+  data.forEach(function(v) {
+    var grad = gradients[v.id % gradients.length];
+    var d = document.createElement('div');
+    d.className = 'vehicle-card';
+    var buyBtn = v.status === 'Available'
+      ? '<button class="btn btn-primary btn-sm" onclick="quickBuy(' + v.id + ')">Buy</button>'
+      : '<button class="btn btn-outline btn-sm" disabled>Sold</button>';
+    d.innerHTML =
+      '<div class="vehicle-img" style="background:' + grad + '">' + v.icon + '</div>' +
+      '<div class="vehicle-body">' +
+        '<div class="vehicle-name">' + v.name + '</div>' +
+        '<div class="vehicle-sub">' + v.year + ' | ' + v.type + ' | ' + v.fuel + ' | ' + v.color + '</div>' +
+        '<div class="vehicle-meta">' +
+          '<div class="vehicle-price">' + fmt(v.price) + '</div>' +
+          '<span class="badge-pill ' + (v.status==='Available'?'badge-available':'badge-sold') + '">' + v.status + '</span>' +
+        '</div>' +
+        '<div class="vehicle-actions">' + buyBtn +
+          '<button class="btn btn-outline btn-sm" onclick="bookSvcFromSearch(' + v.id + ')">Service</button>' +
+        '</div>' +
+      '</div>';
+    grid.appendChild(d);
+  });
+}
+
+function quickBuy(id) {
+  navigate('purchase');
+  setTimeout(function() {
+    document.getElementById('purchaseVehicle').value = id;
+    fillPurchaseDetails();
+  }, 100);
+}
+
+function bookSvcFromSearch(id) {
+  var v = inventory.find(function(x){ return x.id === id; });
+  navigate('bookservice');
+  setTimeout(function() { document.getElementById('svcVehicle').value = v.name; }, 100);
+}
+
+function refreshPurchasePage() {
+  var sel = document.getElementById('purchaseVehicle');
+  sel.innerHTML = '<option value="">-- Select Available Vehicle --</option>';
+  inventory.filter(function(v){ return v.status === 'Available'; }).forEach(function(v) {
+    var o = document.createElement('option');
+    o.value = v.id;
+    o.textContent = v.name + ' (' + v.year + ') - ' + fmt(v.price);
+    sel.appendChild(o);
+  });
+  renderPurchaseHistory();
+  if (!document.getElementById('purchaseDate').value)
+    document.getElementById('purchaseDate').value = today();
+}
+
+function fillPurchaseDetails() {
+  var id = parseInt(document.getElementById('purchaseVehicle').value);
+  var v = inventory.find(function(x){ return x.id === id; });
+  document.getElementById('purchasePrice').value = v ? v.price : '';
+}
+
+function confirmPurchase() {
+  var id = parseInt(document.getElementById('purchaseVehicle').value);
+  var v = inventory.find(function(x){ return x.id === id; });
+  var name = document.getElementById('custName').value.trim();
+  var phone = document.getElementById('custPhone').value.trim();
+  var email = document.getElementById('custEmail').value.trim();
+  var payMode = document.getElementById('payMode').value;
+  var date = document.getElementById('purchaseDate').value;
+  var discount = parseFloat(document.getElementById('purchaseDiscount').value) || 0;
+
+  if (!v) { toast('Error', 'Please select a vehicle.', true); return; }
+  if (!name || !phone) { toast('Error', 'Customer name and phone are required.', true); return; }
+  if (!date) { toast('Error', 'Please select purchase date.', true); return; }
+
+  v.status = 'Sold';
+  var amount = v.price - discount;
+  var record = { id: Date.now(), vehicleId: v.id, vehicle: v.name, custName: name, phone: phone, email: email, payMode: payMode, amount: amount, discount: discount, date: date };
+  purchases.push(record);
+  lastPurchaseIdx = purchases.length - 1;
+
+  document.getElementById('stat-sold').textContent = purchases.length;
+  document.getElementById('modalMsg').innerHTML =
+    '<strong>' + v.name + '</strong> has been sold to <strong>' + name + '</strong>.<br>' +
+    'Amount: <strong>' + fmt(amount) + '</strong><br>Mode: ' + payMode + '<br>Date: ' + fmtDate(date);
+  document.getElementById('purchaseModal').classList.add('open');
+
+  clearPurchaseForm();
+  refreshPurchasePage();
+  toast('Sale Confirmed!', v.name + ' sold to ' + name);
+}
+
+function clearPurchaseForm() {
+  document.getElementById('purchaseVehicle').value = '';
+  document.getElementById('purchasePrice').value = '';
+  document.getElementById('custName').value = '';
+  document.getElementById('custPhone').value = '';
+  document.getElementById('custEmail').value = '';
+  document.getElementById('purchaseDiscount').value = 0;
+  document.getElementById('purchaseDate').value = today();
+}
+
+function renderPurchaseHistory() {
+  var tbody = document.getElementById('purchaseBody');
+  tbody.innerHTML = '';
+  if (purchases.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px">No purchases yet.</td></tr>';
+    return;
+  }
+  purchases.forEach(function(p, i) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (i+1) + '</td><td>' + p.vehicle + '</td><td>' + p.custName + '</td><td>' + p.phone + '</td>' +
+      '<td>' + p.payMode + '</td><td><strong>' + fmt(p.amount) + '</strong></td><td>' + fmtDate(p.date) + '</td>' +
+      '<td><button class="btn btn-warning btn-sm" onclick="generateBillFor(\'sale\',' + i + ')">Bill</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function goToBilling() {
+  closeModal('purchaseModal');
+  navigate('billing');
+  setTimeout(function() {
+    document.getElementById('billType').value = 'sale';
+    toggleBillType();
+    document.getElementById('billPurchaseRef').value = lastPurchaseIdx;
+    populateBillFromPurchase();
+  }, 100);
+}
+
+function generateBillFor(type, idx) {
+  navigate('billing');
+  setTimeout(function() {
+    document.getElementById('billType').value = type;
+    toggleBillType();
+    if (type === 'sale') {
+      document.getElementById('billPurchaseRef').value = idx;
+      populateBillFromPurchase();
+    } else {
+      document.getElementById('billServiceRef').value = idx;
+      populateBillFromService();
+    }
+  }, 100);
+}
+
+function bookService() {
+  var custName = document.getElementById('svcCustName').value.trim();
+  var phone = document.getElementById('svcPhone').value.trim();
+  var vehicle = document.getElementById('svcVehicle').value.trim();
+  var regNo = document.getElementById('svcRegNo').value.trim();
+  var svcType = document.getElementById('svcType').value;
+  var date = document.getElementById('svcDate').value;
+  var delivery = document.getElementById('svcDelivery').value;
+  var notes = document.getElementById('svcNotes').value.trim();
+
+  if (!custName || !phone || !vehicle || !date) {
+    toast('Error', 'Please fill in all required fields.', true); return;
+  }
+
+  serviceBookings.push({ id: Date.now(), custName: custName, phone: phone, vehicle: vehicle, regNo: regNo, svcType: svcType, date: date, delivery: delivery, notes: notes, status: 'Booked' });
+  document.getElementById('stat-bookings').textContent = serviceBookings.length;
+  toast('Booking Confirmed!', 'Service booked for ' + vehicle + ' on ' + fmtDate(date));
+  clearServiceForm();
+}
+
+function clearServiceForm() {
+  ['svcCustName','svcPhone','svcVehicle','svcRegNo','svcDate','svcDelivery','svcNotes'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+}
+
+function renderServiceTable() {
+  var tbody = document.getElementById('serviceBody');
+  var empty = document.getElementById('serviceEmptyState');
+  var badge = document.getElementById('svcCountBadge');
+  tbody.innerHTML = '';
+  badge.textContent = serviceBookings.length + ' jobs';
+
+  if (serviceBookings.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  serviceBookings.forEach(function(b, i) {
+    var cls = b.status === 'Completed' ? 'badge-done' : b.status === 'In Progress' ? 'badge-wip' : 'badge-service';
+    var tr = document.createElement('tr');
+    var billBtn = b.status === 'Completed' ? '<button class="btn btn-warning btn-sm" style="margin-top:4px" onclick="generateBillFor(\'service\',' + i + ')">Bill</button>' : '';
+    tr.innerHTML =
+      '<td>' + (i+1) + '</td><td><strong>' + b.custName + '</strong></td><td>' + b.phone + '</td>' +
+      '<td>' + b.vehicle + '</td><td>' + (b.regNo||'-') + '</td><td>' + b.svcType + '</td>' +
+      '<td>' + fmtDate(b.date) + '</td>' +
+      '<td><span class="badge-pill ' + cls + '">' + b.status + '</span></td>' +
+      '<td>' +
+        '<select class="form-control" style="padding:4px 8px;font-size:0.78rem;min-width:120px" onchange="updateSvcStatus(' + i + ',this.value)">' +
+          '<option ' + (b.status==='Booked'?'selected':'') + '>Booked</option>' +
+          '<option ' + (b.status==='In Progress'?'selected':'') + '>In Progress</option>' +
+          '<option ' + (b.status==='Completed'?'selected':'') + '>Completed</option>' +
+        '</select>' + billBtn +
+      '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function updateSvcStatus(idx, status) {
+  serviceBookings[idx].status = status;
+  toast('Status Updated', 'Job #' + (idx+1) + ' marked as "' + status + '"');
+  renderServiceTable();
+}
+
+function refreshBillingPage() {
+  var ps = document.getElementById('billPurchaseRef');
+  ps.innerHTML = '<option value="">-- Select --</option>';
+  purchases.forEach(function(p, i) {
+    var o = document.createElement('option');
+    o.value = i;
+    o.textContent = '#' + (i+1) + ' - ' + p.vehicle + ' (' + p.custName + ')';
+    ps.appendChild(o);
+  });
+  var ss = document.getElementById('billServiceRef');
+  ss.innerHTML = '<option value="">-- Select --</option>';
+  serviceBookings.filter(function(b){ return b.status === 'Completed'; }).forEach(function(b) {
+    var idx = serviceBookings.indexOf(b);
+    var o = document.createElement('option');
+    o.value = idx;
+    o.textContent = b.svcType + ' - ' + b.custName;
+    ss.appendChild(o);
+  });
+}
+
+function toggleBillType() {
+  var t = document.getElementById('billType').value;
+  document.getElementById('billSaleGroup').style.display = t === 'sale' ? '' : 'none';
+  document.getElementById('billSvcGroup').style.display = t === 'service' ? '' : 'none';
+  document.getElementById('billForm').style.display = 'none';
+  document.getElementById('invoicePreview').style.display = 'none';
+}
+
+function populateBillFromPurchase() {
+  var idx = document.getElementById('billPurchaseRef').value;
+  if (idx === '') { document.getElementById('billForm').style.display = 'none'; return; }
+  var p = purchases[parseInt(idx)];
+  document.getElementById('billCustName').value = p.custName;
+  document.getElementById('billCustPhone').value = p.phone;
+  document.getElementById('billItem').value = p.vehicle;
+  document.getElementById('billBase').value = p.amount + (p.discount||0);
+  document.getElementById('billDiscount').value = p.discount||0;
+  document.getElementById('billForm').style.display = 'block';
+}
+
+function populateBillFromService() {
+  var idx = document.getElementById('billServiceRef').value;
+  if (idx === '') { document.getElementById('billForm').style.display = 'none'; return; }
+  var b = serviceBookings[parseInt(idx)];
+  document.getElementById('billCustName').value = b.custName;
+  document.getElementById('billCustPhone').value = b.phone;
+  document.getElementById('billItem').value = b.svcType + ' - ' + b.vehicle;
+  document.getElementById('billBase').value = '';
+  document.getElementById('billDiscount').value = 0;
+  document.getElementById('billForm').style.display = 'block';
+}
+
+function calcBillTotal() {
+  var base = parseFloat(document.getElementById('billBase').value) || 0;
+  var disc = parseFloat(document.getElementById('billDiscount').value) || 0;
+  var gstP = parseFloat(document.getElementById('billGst').value) || 0;
+  var afterDisc = base - disc;
+  var gst = (afterDisc * gstP) / 100;
+  var total = afterDisc + gst;
+  return { base: base, disc: disc, gstP: gstP, gst: gst, afterDisc: afterDisc, total: total };
+}
+
+function generateBill() {
+  var cn = document.getElementById('billCustName').value.trim();
+  var cp = document.getElementById('billCustPhone').value.trim();
+  var item = document.getElementById('billItem').value.trim();
+  if (!cn || !item) { toast('Error', 'Please fill all fields.', true); return; }
+
+  var r = calcBillTotal();
+  var invNo = genInvoiceNo();
+  var todayStr = fmtDate(today());
+
+  document.getElementById('inv-no').textContent = invNo;
+  document.getElementById('inv-date').textContent = todayStr;
+  document.getElementById('inv-customer').innerHTML = '<strong>' + cn + '</strong><br>' + cp;
+  document.getElementById('inv-item').textContent = item;
+  document.getElementById('inv-items-body').innerHTML = '<tr><td>' + item + '</td><td style="text-align:right">' + fmt(r.base) + '</td></tr>';
+  document.getElementById('inv-sub').textContent = fmt(r.base);
+  document.getElementById('inv-disc').textContent = '- ' + fmt(r.disc);
+  document.getElementById('inv-gst').textContent = fmt(r.gst) + ' (' + r.gstP + '%)';
+  document.getElementById('inv-total').textContent = fmt(r.total);
+
+  document.getElementById('invoicePreview').style.display = 'block';
+  document.getElementById('invoicePreview').scrollIntoView({ behavior: 'smooth' });
+  toast('Invoice Ready!', invNo + ' generated');
+}
+
+function hideInvoice() { document.getElementById('invoicePreview').style.display = 'none'; }
+
+function clearBillForm() {
+  document.getElementById('billCustName').value = '';
+  document.getElementById('billCustPhone').value = '';
+  document.getElementById('billItem').value = '';
+  document.getElementById('billBase').value = '';
+  document.getElementById('billDiscount').value = 0;
+  document.getElementById('billForm').style.display = 'none';
+  document.getElementById('invoicePreview').style.display = 'none';
+}
+
+function printInvoice() {
+  var content = document.getElementById('invoiceContent').innerHTML;
+  var w = window.open('', '_blank');
+  w.document.write(
+    '<html><head><title>Invoice - AutoPro</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">' +
+    '<style>body{font-family:Inter,sans-serif;padding:40px;color:#1a202c}' +
+    'table{width:100%;border-collapse:collapse}th{background:#f1f5f9;padding:10px;text-align:left;font-size:0.75rem;text-transform:uppercase}' +
+    'td{padding:10px;border-bottom:1px solid #e2e8f0}' +
+    '.invoice-total{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:16px;padding-top:16px;border-top:2px solid #e2e8f0}' +
+    '.invoice-total-line{display:flex;gap:60px;font-size:0.9rem}.grand{font-size:1.2rem;font-weight:800;color:#1a56db}' +
+    '</style></head><body>' + content + '</body></html>'
+  );
+  w.document.close();
+  w.print();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+  refreshDashboard();
+  renderVehicleGrid(null);
+});
+</script>
+</body>
+</html>
